@@ -66,8 +66,8 @@ int main()
     vector<int> temp = P_box(plainText, initPermutation);
 
     // printing after initial permutation
-    printf("\n\tInitial Permutation:\n");
-    show(temp, 1);
+    printf("\nInitial Permutation:\n");
+    show(temp, 0);
 
     // applying DES rounds
     for (int r = 0; r < rounds; r++)
@@ -79,13 +79,15 @@ int main()
 
         // applying mixer
         left = XOR(left, DES_function(right, roundKeys[r]));
+        printf("\n\t\t\t\tXOR with left result\n");
+        show(left, 4);
 
         // applying swapper
         temp = combine(right, left);
 
         // printing after each round
-        printf("\n\t\tAfter round %02d:\n", r + 1);
-        show(temp, 2);
+        printf("\nAfter round %02d:\n", r + 1);
+        show(temp, 0);
     }
     // final counter-swap and
     temp = swap(temp);
@@ -111,21 +113,36 @@ int main()
 
 void show(vector<int> text, int indentation = 0)
 {
+    vector<int> hexaMap = {'0','1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
     for (int i = 0; (8 * i) < text.size(); i++)
     {
         for (int d = 0; d < indentation; d++)
         {
             printf("\t");
         }
+        int MSN = 0, LSN = 0;
         for (int j = 0; j < 4 && 8 * i + j < text.size(); j++)
         {
-            printf("%d ", text[8 * i + j]);
+            int bit = text[8 * i + j];
+            printf("%d ", bit);
+            if(bit == 1)
+            {
+                MSN += pow(2, 3-j);
+            }
         }
         printf("  ");
         for (int j = 4; j < 8 && 8 * i + j < text.size(); j++)
         {
-            printf("%d ", text[8 * i + j]);
+            int bit = text[8 * i + j];
+            printf("%d ", bit);
+            if(bit == 1)
+            {
+                LSN += pow(2, 7-j);
+            }
         }
+        printf("  ");
+        printf("%c%c", hexaMap[MSN], hexaMap[LSN]);
         printf("\n");
     }
 }
@@ -175,8 +192,8 @@ vector<vector<int>> roundKeyGenerator(vector<int> cipherKey)
         roundKeys[r - 1] = P_box(cipherKey, keyCompressionPermutation);
 
         // printing round keys
-        printf("\n\t\tRound key %02d:\n", r);
-        show(roundKeys[r - 1], 2);
+        printf("\n\t\t\t\tRound key %02d:\n", r);
+        show(roundKeys[r - 1], 4);
     }
     return roundKeys;
 }
@@ -265,12 +282,18 @@ vector<int> DES_function(vector<int> right, vector<int> roundKey)
         24, 25, 26, 27, 28, 29,
         28, 29, 30, 31, 32, 1};
     right = P_box(right, expansionPermutation);
+    printf("\n\t\t\t\texpansion P-box result\n");
+    show(right, 4);
 
     // applying XOR with the roundKey
     right = XOR(right, roundKey);
+    printf("\n\t\t\t\tadd roundKey result\n");
+    show(right, 4);
 
     // applying DES S-boxes for compression
     right = DES_S_boxes(right);
+    printf("\n\t\t\t\tS-box result\n");
+    show(right, 4);
 
     // applying straight P-box
     vector<int> DES_straightPermutation = {
@@ -279,6 +302,8 @@ vector<int> DES_function(vector<int> right, vector<int> roundKey)
         2, 8, 24, 14, 32, 27, 3, 9,
         19, 13, 30, 6, 22, 11, 4, 25};
     right = P_box(right, DES_straightPermutation);
+    printf("\n\t\t\t\tStraight P-box result\n");
+    show(right, 4);
 
     return right;
 }
@@ -329,9 +354,11 @@ vector<int> DES_S_boxes(vector<int> text)
 
     for (int b = 0; b < 8; b++)
     {
-        int row = 2 * text[6 * b] + text[6 * b + 5];
-        int col = 8 * text[6 * b + 1] + 4 * text[6 * b + 2] + 2 * text[6 * b + 3] + text[6 * b + 4];
-        int temp = S_boxes[b][row][col];
+        // b is for the box number, and every box takes 6 bits as input
+        int offset = 6 * b;
+        int rowNo = (2 * text[offset]) + text[offset + 5];
+        int colNo = (8 * text[offset + 1]) + (4 * text[offset + 2]) + (2 * text[offset + 3]) + text[offset + 4];
+        int temp = S_boxes[b][rowNo][colNo];
 
         vector<int> subWord = {0, 0, 0, 0};
         if (temp >= 8)
@@ -357,7 +384,5 @@ vector<int> DES_S_boxes(vector<int> text)
 
         result = combine(result, subWord);
     }
-    printf("\n\t\t\t\t\tS-box result\n");
-    show(result, 5);
     return result;
 }
