@@ -23,7 +23,7 @@ vector<int> DES_S_boxes(vector<int> text);
 
 int main()
 {
-    // taking input from the file
+    // initiating a filePointer to take input from the txt file
     FILE *readPointer = fopen("DES.txt", "r");
     // reading plainText from the txt file
     vector<int> plainText;
@@ -50,7 +50,7 @@ int main()
     printf("\nCipher Key:\n");
     show(cipherKey, 0);
 
-    // calculating roundKeys
+    // calculating roundKeys using Round Key Generator
     vector<vector<int>> roundKeys = roundKeyGenerator(cipherKey);
 
     // applying initial permutation
@@ -104,10 +104,10 @@ int main()
         33, 1, 41, 9, 49, 17, 57, 25};
     vector<int> cipherText = P_box(temp, finalPermutation);
 
-    // printing the cipher text
-    printf("\nCipher text:\n");
+    // printing after final permutation
+    printf("\nFinal Permutation:\n");
     show(cipherText, 0);
-
+    printf("\nThis is the Cipher Text\n");
     return 0;
 }
 
